@@ -53,6 +53,7 @@ contract Marketplace is ReentrancyGuard {
   );
   
   mapping(uint256 => MarketItem) private idToMarketItem;
+  MarketItem[] marketItems;
 
   constructor() payable {
     owner = payable(msg.sender);
@@ -68,7 +69,7 @@ contract Marketplace is ReentrancyGuard {
     uint256 funding
   ) public payable nonReentrant {
     require(funding > 0, "Funding must be at least 1 wei");
-    require(msg.value == listingFee, "Listing fee must be equal to 0.1");
+    //require(msg.value == listingFee, "Listing fee must be equal to 0.1");
 
     _itemIds.increment();
     uint256 itemId = _itemIds.current();
@@ -82,6 +83,15 @@ contract Marketplace is ReentrancyGuard {
       payable(msg.sender),
       funding
     );
+
+    marketItems.push(MarketItem(
+      itemId,
+      title,
+      description,
+      deadline,
+      payable(msg.sender),
+      funding
+    ));
 
     emit MarketItemCreated(
       itemId,
@@ -126,29 +136,27 @@ contract Marketplace is ReentrancyGuard {
    
     return items;
   }
+*/
 
-  function fetchMyNFTs() public view returns (MarketItem[] memory) {
+  function fetchAllListings() public view returns (MarketItem[] memory) {
     uint totalItemCount = _itemIds.current();
     uint itemCount = 0;
     uint currentIndex = 0;
 
-    for (uint i = 0; i < totalItemCount; i++) {
-      if (idToMarketItem[i + 1].owner == msg.sender) {
-        itemCount += 1;
-      }
-    }
-
     MarketItem[] memory items = new MarketItem[](itemCount);
+
     for (uint i = 0; i < totalItemCount; i++) {
-      if (idToMarketItem[i + 1].owner == msg.sender) {
         uint currentId = i + 1;
         MarketItem storage currentItem = idToMarketItem[currentId];
         items[currentIndex] = currentItem;
         currentIndex += 1;
-      }
     }
    
     return items;
   }
-  */
+
+    function fetchNumberListings() public view returns (MarketItem[] memory) {
+        return marketItems;
+    }
+
 }

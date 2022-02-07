@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
 import "./App.css";
 import { ethers } from "ethers";
-import abi from "./utils/WavePortal.json";
+import abi from "./utils/Marketplace.json";
 const axios = require('axios');
 
 
 const App = () => {
-
 
   const [currentAccount, setCurrentAccount] = useState("");
   const [nbWaves, setNbWaves] = useState("");
@@ -15,8 +14,10 @@ const App = () => {
   const [allWaves, setAllWaves] = useState([]);
   const [accountBalance, setAccountBalance] = useState([]);
   const [usdAccountBalance, setUsdAccountBalance] = useState([]);
+  const [listings, setAllListings] = useState([]);
 
-  const contractAddress = "0xC0Ee3EF5d89320e79f80381eDa20859e06ebC1aA";
+
+  const contractAddress = "0x592F9Ed2620508fc6DD2096460c7785871F0cAFf";
   const contractABI = abi.abi;
 
   const constructor = () => { }
@@ -26,29 +27,7 @@ const App = () => {
   }
 
 
-  const getAccountBalance = async () => {
-    try {
-      const res = await axios({
-        method: 'get',
-        url: 'https://api-rinkeby.etherscan.io/api?module=account&action=balance&address=0xdda91E3E4300dE7Ab18Bc47c2a491d8AB451Df5B&tag=latest&apikey=Y6S7UXIDUI7GMIB73JSBDC97ENH3YIUAR5',
-        data: {
-          module: 'account',
-          action: 'balance',
-          address: '0xdda91E3E4300dE7Ab18Bc47c2a491d8AB451Df5B',
-          tag: 'latest',
-          apikey: '{API_KEY}'
-        }
-      });
-      var balance = res.data.result / 1000000000000000000
-      setAccountBalance(Math.round(balance * 1000) / 1000)
-
-    } catch (error) {
-      console.log(error)
-    }
-
-  }
-
-  const getEthPrice = async () => {
+  const createListing = async () => {
 
     try {
       const { ethereum } = window;
@@ -56,11 +35,13 @@ const App = () => {
       if (ethereum) {
         const provider = new ethers.providers.Web3Provider(ethereum);
         const signer = provider.getSigner();
-        const wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
+        const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
-        let price = await wavePortalContract.getLatestPrice();
-        setEthPrice(price.toNumber() / 100000000)
-        console.log("Eth Price: ", ethPrice);
+        const waveTxn = await contract.createMarketItem("This is a listing", "Title", 10);
+        console.log("Mining...", waveTxn.hash);
+
+        await waveTxn.wait();
+        console.log("Mined -- ", waveTxn.hash);
 
       }
     }
@@ -69,48 +50,6 @@ const App = () => {
     }
   }
 
-
-  /*
-   * Create a method that gets all waves from your contract
-   */
-  const getAllWaves = async () => {
-    try {
-      const { ethereum } = window;
-      if (ethereum) {
-        const provider = new ethers.providers.Web3Provider(ethereum);
-        const signer = provider.getSigner();
-        const wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
-
-        /*
-         * Call the getAllWaves method from your Smart Contract
-         */
-        const waves = await wavePortalContract.getAllWaves();
-
-
-        /*
-         * We only need address, timestamp, and message in our UI so let's
-         * pick those out
-         */
-        let wavesCleaned = [];
-        waves.forEach(wave => {
-          wavesCleaned.push({
-            address: wave.waver,
-            timestamp: new Date(wave.timestamp * 1000),
-            message: wave.message
-          });
-        });
-
-        /*
-         * Store our data in React State
-         */
-        setAllWaves(wavesCleaned);
-      } else {
-        console.log("Ethereum object doesn't exist!")
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  }
 
   const checkIfWalletIsConnected = async () => {
     try {
@@ -128,8 +67,7 @@ const App = () => {
       if (accounts.length !== 0) {
         const account = accounts[0];
         console.log("Found an authorized account:", account);
-        setCurrentAccount(account);
-        getAllWaves();
+
       } else {
         console.log("No authorized account found")
       }
@@ -159,67 +97,56 @@ const App = () => {
     }
   }
 
-  const getWaves = async () => {
 
+  const getAllWaves = async () => {
     try {
       const { ethereum } = window;
-
       if (ethereum) {
         const provider = new ethers.providers.Web3Provider(ethereum);
         const signer = provider.getSigner();
-        const wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
+        const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
-        let count = await wavePortalContract.getTotalWaves();
-        console.log("Retrieved total wave count 2 ...", count.toNumber());
-        setNbWaves(count.toNumber())
+        console.log("Got here 1")
 
-        let price = await wavePortalContract.getLatestPrice();
-        setEthPrice(price.toNumber() / 100000000)
+        //createListing()
+        /*
+         * Call the getAllWaves method from your Smart Contract
+         */
+        const allListings = await contract.fetchNumberListings();
 
-      }
-    }
-    catch (error) {
-      console.log(error)
-    }
-  }
-
-
-  const wave = async () => {
-    try {
-      const { ethereum } = window;
-
-      if (ethereum) {
-        const provider = new ethers.providers.Web3Provider(ethereum);
-        const signer = provider.getSigner();
-        const wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
-
-        let count = await wavePortalContract.getTotalWaves();
-        console.log("Retrieved total wave count...", count.toNumber());
+        console.log(allListings)
 
         /*
-        * Execute the actual wave from your smart contract
-        */
-        const waveTxn = await wavePortalContract.wave(message);
-        console.log("Mining...", waveTxn.hash);
+         * We only need address, timestamp, and message in our UI so let's
+         * pick those out
+         */
+        let listings = [];
+        allListings.forEach(l => {
+          listings.push({
+            address: l.seller,
+            deadline: JSON.stringify(new Date(l.deadline * 1000)),
+            title: l.title,
+            description: l.description,
+            targetFundingPrice:  parseInt(l.targetFundingPrice._hex)
+          });
+          console.log(JSON.stringify(l.targetFundingPrice._hex))
+          console.log("0x0a")
+        });
 
-        await waveTxn.wait();
-        console.log("Mined -- ", waveTxn.hash);
+        setAllListings(listings);
 
-        count = await wavePortalContract.getTotalWaves();
-        console.log("Retrieved total wave count...", count.toNumber());
       } else {
-        console.log("Ethereum object doesn't exist!");
+        console.log("Ethereum object doesn't exist!")
       }
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }
+
+
 
   useEffect(() => {
     checkIfWalletIsConnected();
-    getEthPrice();
-    getAccountBalance();
-    setUsdAccountBalance(Math.round(ethPrice * accountBalance * 100) / 100)
   }, [])
 
   return (
@@ -232,11 +159,11 @@ const App = () => {
         <form className="bio">
           <label>
             Send me a Message:{" "}
-            <input type="text" value={message} onChange={handleChange} />
+            <input type="text" value={message} />
           </label>
         </form>
 
-        <button className="waveButton" onClick={wave}>
+        <button className="waveButton" >
           Wave at Me
         </button>
 
@@ -249,33 +176,25 @@ const App = () => {
           </button>
         )}
 
-        <button className="waveButton" onClick={getWaves}>
+        <button className="waveButton" onClick={getAllWaves}>
           Get Waves
           </button>
         <div className="bio">
           There are currently {nbWaves} waves !
         </div>
 
-        {allWaves.map((wave, index) => {
+        {listings.map((wave, index) => {
           return (
             <div key={index} style={{ backgroundColor: "OldLace", marginTop: "16px", padding: "8px" }}>
-              <div>Address: {wave.address}</div>
-              <div>Time: {wave.timestamp.toString()}</div>
+              <div>Address: {wave.title}</div>
+              <div>Address: {wave.description}</div>
+              <div>Seller: {wave.address}</div>
+              <div>Time: {wave.deadline}</div>
               <div>Message: {wave.message}</div>
+              <div>Target: {wave.targetFundingPrice}</div>
             </div>)
         })}
 
-      </div>
-
-      <div className="rightContainer">
-        <div className="bio">
-          Balance ${usdAccountBalance}
-        </div>
-
-        <div className="bio small-font">
-          ETH price is {ethPrice} USD !
-        </div>
-        
       </div>
     </div>
   );

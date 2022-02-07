@@ -147,8 +147,8 @@
       ]
     },
     "/Users/mehdi/projects/blockstarter/contracts/Marketplace.sol": {
-      "lastModificationDate": 1643841041768,
-      "contentHash": "8f33d4aa2320a248e67f18e1cd2e3348",
+      "lastModificationDate": 1643935255052,
+      "contentHash": "bac504b1097323de2a8aa501402a8858",
       "sourceName": "contracts/Marketplace.sol",
       "solcConfig": {
         "version": "0.8.4",
