@@ -51,9 +51,16 @@ contract Marketplace is ReentrancyGuard {
     address seller,
     uint256 targetFundingPrice
   );
+
+  struct Contributor {
+    uint itemId;
+    address sender;
+    uint256 contribution;
+  }
   
   mapping(uint256 => MarketItem) private idToMarketItem;
   MarketItem[] marketItems;
+  Contributor[] contributors;
 
   constructor() payable {
     owner = payable(msg.sender);
@@ -158,5 +165,23 @@ contract Marketplace is ReentrancyGuard {
     function fetchNumberListings() public view returns (MarketItem[] memory) {
         return marketItems;
     }
+
+
+    function sendViaCall(uint itemId) public payable {
+        // Call returns a boolean value indicating success or failure.
+        // This is the current recommended method to use.
+       // (bool sent, bytes memory data) = address(this).call{value: msg.value}("");
+       // require(sent, "Failed to send Ether");
+
+        contributors.push(Contributor(itemId, msg.sender, msg.value));
+
+    }
+
+        function fetchContributors() public view returns (Contributor[] memory) {
+        return contributors;
+    }
+
+    fallback () external payable {}
+    receive() external payable {}
 
 }

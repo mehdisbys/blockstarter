@@ -17,7 +17,7 @@ const App = () => {
   const [listings, setAllListings] = useState([]);
 
 
-  const contractAddress = "0x592F9Ed2620508fc6DD2096460c7785871F0cAFf";
+  const contractAddress = "0xCBA96A859f2F75Ab7C288ADC5b3b7D1284318017";
   const contractABI = abi.abi;
 
   const constructor = () => { }
@@ -108,7 +108,7 @@ const App = () => {
 
         console.log("Got here 1")
 
-        //createListing()
+     //   createListing()
         /*
          * Call the getAllWaves method from your Smart Contract
          */
@@ -116,10 +116,6 @@ const App = () => {
 
         console.log(allListings)
 
-        /*
-         * We only need address, timestamp, and message in our UI so let's
-         * pick those out
-         */
         let listings = [];
         allListings.forEach(l => {
           listings.push({
@@ -127,13 +123,46 @@ const App = () => {
             deadline: JSON.stringify(new Date(l.deadline * 1000)),
             title: l.title,
             description: l.description,
-            targetFundingPrice:  parseInt(l.targetFundingPrice._hex)
+            targetFundingPrice: parseInt(l.targetFundingPrice._hex)
           });
           console.log(JSON.stringify(l.targetFundingPrice._hex))
           console.log("0x0a")
         });
 
         setAllListings(listings);
+
+      } else {
+        console.log("Ethereum object doesn't exist!")
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  const contribute = async () => {
+    try {
+      const { ethereum } = window;
+      if (ethereum) {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(contractAddress, contractABI, signer);
+
+        console.log(signer)
+
+        const txOverrides = {
+          value: ethers.utils.parseEther('0.01'),
+          from: "0xdda91E3E4300dE7Ab18Bc47c2a491d8AB451Df5B"
+        };
+
+      //  const Txn =  await contract.sendViaCall(1, txOverrides);
+        // console.log("Mining...", Txn.hash);
+
+        // await Txn.wait();
+        // console.log("Mined -- ", Txn.hash);
+
+       let contributors =  await contract.fetchContributors();
+
+        console.log(contributors)
 
       } else {
         console.log("Ethereum object doesn't exist!")
@@ -179,6 +208,11 @@ const App = () => {
         <button className="waveButton" onClick={getAllWaves}>
           Get Waves
           </button>
+
+        <button className="waveButton" onClick={contribute}>
+          Contribute
+          </button>
+
         <div className="bio">
           There are currently {nbWaves} waves !
         </div>
