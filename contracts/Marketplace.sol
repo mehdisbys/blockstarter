@@ -57,6 +57,12 @@ contract Marketplace is ReentrancyGuard {
     address sender;
     uint256 contribution;
   }
+
+  event ContributorDonated (
+    uint indexed itemId,
+    address sender,
+    uint256 contribution
+  );
   
   mapping(uint256 => MarketItem) private idToMarketItem;
   MarketItem[] marketItems;
@@ -110,41 +116,6 @@ contract Marketplace is ReentrancyGuard {
     );
   }
 
-/*
-  function createMarketSale(
-    address nftContract,
-    uint256 itemId
-    ) public payable nonReentrant {
-    uint price = idToMarketItem[itemId].price;
-    uint tokenId = idToMarketItem[itemId].tokenId;
-    require(msg.value == price, "Please submit the asking price in order to complete the purchase");
-
-    idToMarketItem[itemId].seller.transfer(msg.value);
-    IERC721(nftContract).transferFrom(address(this), msg.sender, tokenId);
-    idToMarketItem[itemId].owner = payable(msg.sender);
-    _itemsSold.increment();
-    payable(owner).transfer(listingFee);
-  }
-
-  function fetchMarketItems() public view returns (MarketItem[] memory) {
-    uint itemCount = _itemIds.current();
-    uint unsoldItemCount = _itemIds.current() - _itemsSold.current();
-    uint currentIndex = 0;
-
-    MarketItem[] memory items = new MarketItem[](unsoldItemCount);
-    for (uint i = 0; i < itemCount; i++) {
-      if (idToMarketItem[i + 1].owner == address(0)) {
-        uint currentId = i + 1;
-        MarketItem storage currentItem = idToMarketItem[currentId];
-        items[currentIndex] = currentItem;
-        currentIndex += 1;
-      }
-    }
-   
-    return items;
-  }
-*/
-
   function fetchAllListings() public view returns (MarketItem[] memory) {
     uint totalItemCount = _itemIds.current();
     uint itemCount = 0;
@@ -162,26 +133,23 @@ contract Marketplace is ReentrancyGuard {
     return items;
   }
 
-    function fetchNumberListings() public view returns (MarketItem[] memory) {
-        return marketItems;
-    }
+  function fetchNumberListings() public view returns (MarketItem[] memory) {
+    return marketItems;
+  }
 
 
-    function sendViaCall(uint itemId) public payable {
-        // Call returns a boolean value indicating success or failure.
-        // This is the current recommended method to use.
-       // (bool sent, bytes memory data) = address(this).call{value: msg.value}("");
-       // require(sent, "Failed to send Ether");
+  function contributeToProject(uint itemId) public payable {
+    require(msg.value > 0, "contribution must be superior to zero");
+    require(idToMarketItem[itemId].itemId > 0, "project id must be valid");
+    contributors.push(Contributor(itemId, msg.sender, msg.value));
+    emit ContributorDonated(itemId, msg.sender, msg.value);
+  }
 
-        contributors.push(Contributor(itemId, msg.sender, msg.value));
+  function fetchContributors() public view returns (Contributor[] memory) {
+    return contributors;
+  }
 
-    }
-
-        function fetchContributors() public view returns (Contributor[] memory) {
-        return contributors;
-    }
-
-    fallback () external payable {}
-    receive() external payable {}
+  fallback () external payable {}
+  receive() external payable {}
 
 }

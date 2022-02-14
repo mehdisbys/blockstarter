@@ -17,7 +17,7 @@ const App = () => {
   const [listings, setAllListings] = useState([]);
 
 
-  const contractAddress = "0xCBA96A859f2F75Ab7C288ADC5b3b7D1284318017";
+  const contractAddress = "0x8818fCd4F5b4bcC8e9b26CE925881F760a3Ae1C5";
   const contractABI = abi.abi;
 
   const constructor = () => { }
@@ -108,7 +108,7 @@ const App = () => {
 
         console.log("Got here 1")
 
-     //   createListing()
+        createListing()
         /*
          * Call the getAllWaves method from your Smart Contract
          */
@@ -154,13 +154,13 @@ const App = () => {
           from: "0xdda91E3E4300dE7Ab18Bc47c2a491d8AB451Df5B"
         };
 
-      //  const Txn =  await contract.sendViaCall(1, txOverrides);
-        // console.log("Mining...", Txn.hash);
+        const Txn = await contract.contributeToProject(1, txOverrides);
+        console.log("Mining...", Txn.hash);
 
-        // await Txn.wait();
-        // console.log("Mined -- ", Txn.hash);
+        await Txn.wait();
+        console.log("Mined -- ", Txn.hash);
 
-       let contributors =  await contract.fetchContributors();
+        let contributors = await contract.fetchContributors();
 
         console.log(contributors)
 
