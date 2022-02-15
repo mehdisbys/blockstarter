@@ -141,6 +141,9 @@ contract Marketplace is ReentrancyGuard {
   function contributeToProject(uint itemId) public payable {
     require(msg.value > 0, "contribution must be superior to zero");
     require(idToMarketItem[itemId].itemId > 0, "project id must be valid");
+    require(msg.value <= idToMarketItem[itemId].targetFundingPrice, "contribution to project cannot be higher than targetPrice");
+    require(idToMarketItem[itemId].deadline > block.timestamp, "Project deadline must be in the future");
+
     contributors.push(Contributor(itemId, msg.sender, msg.value));
     emit ContributorDonated(itemId, msg.sender, msg.value);
   }

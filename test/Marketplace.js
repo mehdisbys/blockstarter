@@ -27,7 +27,7 @@ describe("Marketplace", function () {
 
     const hardhatToken = await Marketplace.deploy();
 
-    await hardhatToken.createMarketItem("desc", "title", 145);
+    await hardhatToken.createMarketItem("desc", "title", ethers.utils.parseEther('145'));
 
     const txOverrides = {
       value: ethers.utils.parseEther('0.01')
@@ -66,5 +66,54 @@ describe("Marketplace", function () {
     expect(0).to.equal(listings.length);
   
   });
+
+  it("Cannot contribute more than project funding", async function () {
+    const [owner] = await ethers.getSigners();
+
+    const Marketplace = await ethers.getContractFactory("Marketplace");
+
+    const hardhatToken = await Marketplace.deploy();
+
+    await hardhatToken.createMarketItem("desc", "title", ethers.utils.parseEther('1'));
+
+    const txOverrides = {
+      value: ethers.utils.parseEther('10')
+    };
+
+    await expect(hardhatToken.contributeToProject(1, txOverrides)).to.be.revertedWith("contribution to project cannot be higher than targetPrice")
+
+    listings = await hardhatToken.fetchContributors();
+    console.log(listings)
+
+    expect(0).to.equal(listings.length);
+  
+  });
+
+  it("Cannot contribute to expired project", async function () {
+    const [owner] = await ethers.getSigners();
+
+    const Marketplace = await ethers.getContractFactory("Marketplace");
+
+    const hardhatToken = await Marketplace.deploy();
+
+    await hardhatToken.createMarketItem("desc", "title", ethers.utils.parseEther('1'));
+
+    await ethers.provider.send("evm_increaseTime", [2678400]) // 31 days
+
+    await ethers.provider.send("evm_mine")
+
+    const txOverrides = {
+      value: ethers.utils.parseEther('0.01')
+    };
+
+    await expect(hardhatToken.contributeToProject(1, txOverrides)).to.be.revertedWith("Project deadline must be in the future")
+
+    listings = await hardhatToken.fetchContributors();
+    console.log(listings)
+
+    expect(0).to.equal(listings.length);
+  
+  });
+
 
 });
