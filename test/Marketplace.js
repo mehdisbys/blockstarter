@@ -116,4 +116,37 @@ describe("Marketplace", function () {
   });
 
 
+  it("Can claim back its donation from expired project", async function () {
+    const [owner] = await ethers.getSigners();
+
+    const Marketplace = await ethers.getContractFactory("Marketplace");
+
+    const hardhatToken = await Marketplace.deploy();
+
+    await hardhatToken.createMarketItem("desc", "title", ethers.utils.parseEther('145'));
+
+    const txOverrides = {
+      value: ethers.utils.parseEther('1')
+    };
+
+    const beforeBalance = await ethers.provider.getBalance(owner.address);
+
+    await hardhatToken.contributeToProject(1, txOverrides)
+
+    await ethers.provider.send("evm_increaseTime", [2678400]) // 31 days
+
+    await ethers.provider.send("evm_mine")
+
+    const receipt = await hardhatToken.claimBackDonationMissedProjectDeadline(1)
+
+    console.log(receipt)
+    console.log(beforeBalance)
+    const afterBalance = await ethers.provider.getBalance(owner.address);
+
+    const gasUsed = BigInt(receipt.gasLimit) * BigInt(receipt.gasPrice);
+    expect(BigInt(beforeBalance) - gasUsed).to.equal(BigInt(afterBalance));
+  
+  });
+
+
 });

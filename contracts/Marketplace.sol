@@ -54,7 +54,7 @@ contract Marketplace is ReentrancyGuard {
 
   struct Contributor {
     uint itemId;
-    address sender;
+    address payable sender;
     uint256 contribution;
   }
 
@@ -65,6 +65,8 @@ contract Marketplace is ReentrancyGuard {
   );
   
   mapping(uint256 => MarketItem) private idToMarketItem;
+  mapping(uint256 => Contributor[]) private idToContributors;
+
   MarketItem[] marketItems;
   Contributor[] contributors;
 
@@ -144,12 +146,34 @@ contract Marketplace is ReentrancyGuard {
     require(msg.value <= idToMarketItem[itemId].targetFundingPrice, "contribution to project cannot be higher than targetPrice");
     require(idToMarketItem[itemId].deadline > block.timestamp, "Project deadline must be in the future");
 
-    contributors.push(Contributor(itemId, msg.sender, msg.value));
+    contributors.push(Contributor(itemId, payable(msg.sender), msg.value));
+
+    idToContributors[itemId].push(Contributor(itemId, payable(msg.sender), msg.value));
+
     emit ContributorDonated(itemId, msg.sender, msg.value);
   }
 
   function fetchContributors() public view returns (Contributor[] memory) {
     return contributors;
+  }
+
+  function claimBackDonationMissedProjectDeadline (uint itemId) public {
+    require(idToMarketItem[itemId].deadline < block.timestamp, "Project deadline has not been reached yet");
+
+    bool found;
+    uint position = 0;
+
+     for (uint i = 0; i < idToContributors[itemId].length; i++) { 
+        if (idToContributors[itemId][i].sender == msg.sender) {
+          found = true;
+          position = i;
+          break;
+        }
+     }
+     require (found, "User not found in contributor list");
+
+    Contributor memory userContributor = idToContributors[itemId][position];
+    idToContributors[itemId][position].sender.transfer(userContributor.contribution);
   }
 
   fallback () external payable {}
