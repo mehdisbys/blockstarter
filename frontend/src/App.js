@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./App.css";
 import { ethers } from "ethers";
 import abi from "./utils/Marketplace.json";
+import { Modal } from "./Modal.js";
 const axios = require('axios');
 
 
@@ -15,6 +16,8 @@ const App = () => {
   const [accountBalance, setAccountBalance] = useState([]);
   const [usdAccountBalance, setUsdAccountBalance] = useState([]);
   const [listings, setAllListings] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+
 
 
   const contractAddress = "0x8818fCd4F5b4bcC8e9b26CE925881F760a3Ae1C5";
@@ -26,6 +29,9 @@ const App = () => {
     setMessage(e.target.value)
   }
 
+  const openModal = () => {
+    setShowModal(true);
+  };
 
   const createListing = async () => {
 
@@ -98,7 +104,7 @@ const App = () => {
   }
 
 
-  const getAllWaves = async () => {
+  const clickCreateListing = async () => {
     try {
       const { ethereum } = window;
       if (ethereum) {
@@ -147,11 +153,11 @@ const App = () => {
         const signer = provider.getSigner();
         const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
-        console.log(signer)
+        console.log(currentAccount)
 
         const txOverrides = {
-          value: ethers.utils.parseEther('0.01'),
-          from: "0xdda91E3E4300dE7Ab18Bc47c2a491d8AB451Df5B"
+          value: ethers.utils.parseEther(message),
+          from: currentAccount
         };
 
         const Txn = await contract.contributeToProject(1, txOverrides);
@@ -185,16 +191,6 @@ const App = () => {
           👋 Hey there! It seems you are the owner of {accountBalance} ETH !
         </div>
 
-        <form className="bio">
-          <label>
-            Send me a Message:{" "}
-            <input type="text" value={message} />
-          </label>
-        </form>
-
-        <button className="waveButton" >
-          Wave at Me
-        </button>
 
         {/*
         * If there is no currentAccount render this button
@@ -205,17 +201,32 @@ const App = () => {
           </button>
         )}
 
-        <button className="waveButton" onClick={getAllWaves}>
-          Get Waves
+        <button className="waveButton" onClick={clickCreateListing}>
+          Create New Listing
           </button>
 
         <button className="waveButton" onClick={contribute}>
           Contribute
           </button>
 
+          <form className="bio">
+          <label>
+            Contribute to project in ETH :
+            <input type="text" value={message} onChange={handleChange}/>
+          </label>
+        </form>
+
         <div className="bio">
           There are currently {nbWaves} waves !
         </div>
+
+        <div className="App">
+      <h1>Popup Modal</h1>
+      <button onClick={openModal}>Open Modal</button>
+      {showModal ? <Modal setShowModal={setShowModal} /> : null}
+    </div>
+        <div id="portal"></div>
+
 
         {listings.map((wave, index) => {
           return (
