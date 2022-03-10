@@ -88,7 +88,7 @@
   position: relative;
   animation: animate 0.3s;
 }
-.modal button {
+.modal-button {
   position: absolute;
   top: 7px;
   right: 7px;

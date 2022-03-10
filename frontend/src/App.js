@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+
 import "./App.css";
 import { ethers } from "ethers";
 import abi from "./utils/Marketplace.json";
-import { Modal } from "./Modal.js";
 const axios = require('axios');
 
 
@@ -19,19 +19,23 @@ const App = () => {
   const [showModal, setShowModal] = useState(false);
 
 
-
   const contractAddress = "0x8818fCd4F5b4bcC8e9b26CE925881F760a3Ae1C5";
   const contractABI = abi.abi;
 
   const constructor = () => { }
 
-  const handleChange = e => {
-    setMessage(e.target.value)
-  }
+  const [state, setState] = useState({
+    title: "",
+    description: "",
+    targetFundingPrice: ""
+  })
 
-  const openModal = () => {
-    setShowModal(true);
-  };
+  const handleChange = e => {
+    setState({
+      ...state,
+      [e.target.name]: e.target.value,
+    })
+  }
 
   const createListing = async () => {
 
@@ -43,7 +47,7 @@ const App = () => {
         const signer = provider.getSigner();
         const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
-        const waveTxn = await contract.createMarketItem("This is a listing", "Title", 10);
+        const waveTxn = await contract.createMarketItem(state.description, state.title, state.targetFundingPrice);
         console.log("Mining...", waveTxn.hash);
 
         await waveTxn.wait();
@@ -54,7 +58,7 @@ const App = () => {
     catch (error) {
       console.log(error)
     }
-  }
+  } 
 
 
   const checkIfWalletIsConnected = async () => {
@@ -115,9 +119,7 @@ const App = () => {
         console.log("Got here 1")
 
         createListing()
-        /*
-         * Call the getAllWaves method from your Smart Contract
-         */
+
         const allListings = await contract.fetchNumberListings();
 
         console.log(allListings)
@@ -204,15 +206,17 @@ const App = () => {
         <button className="waveButton" onClick={clickCreateListing}>
           Create New Listing
           </button>
+        <button className="waveButton" onClick={clickCreateListing}>Submit</button>
+
 
         <button className="waveButton" onClick={contribute}>
           Contribute
           </button>
 
-          <form className="bio">
+        <form className="bio">
           <label>
             Contribute to project in ETH :
-            <input type="text" value={message} onChange={handleChange}/>
+            <input type="text" value={message} onChange={handleChange} />
           </label>
         </form>
 
@@ -221,12 +225,46 @@ const App = () => {
         </div>
 
         <div className="App">
-      <h1>Popup Modal</h1>
-      <button onClick={openModal}>Open Modal</button>
-      {showModal ? <Modal setShowModal={setShowModal} /> : null}
-    </div>
+          <h1>Create New Listing</h1>
+        </div>
         <div id="portal"></div>
 
+        <form id="form">
+          <label>
+            <div>Title</div>
+            <input
+              type="text"
+              name="title"
+              value={state.title}
+              onChange={handleChange}
+            />
+          </label>
+          <p></p>
+          <label>
+            <div>Description</div>
+            <textarea
+              type="text"
+              name="description"
+              value={state.description}
+              onChange={handleChange}
+            />
+          </label>
+          <p></p>
+          <label>
+            <div>Target Funding</div>
+            <input
+              type="text"
+              name="targetFundingPrice"
+              value={state.targetFundingPrice}
+              onChange={handleChange}
+            />
+          </label>
+          <p></p>
+
+        </form>
+        <div>
+          <button className="waveButton" onClick={clickCreateListing}>Submit</button>
+        </div>
 
         {listings.map((wave, index) => {
           return (
