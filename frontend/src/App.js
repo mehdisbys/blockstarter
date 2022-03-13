@@ -27,7 +27,8 @@ const App = () => {
   const [state, setState] = useState({
     title: "",
     description: "",
-    targetFundingPrice: ""
+    targetFundingPrice: "",
+    contribution: ""
   })
 
   const handleChange = e => {
@@ -58,7 +59,7 @@ const App = () => {
     catch (error) {
       console.log(error)
     }
-  } 
+  }
 
 
   const checkIfWalletIsConnected = async () => {
@@ -86,9 +87,6 @@ const App = () => {
     }
   }
 
-  /**
-  * Implement your connectWallet method here
-  */
   const connectWallet = async () => {
     try {
       const { ethereum } = window;
@@ -108,7 +106,7 @@ const App = () => {
   }
 
 
-  const clickCreateListing = async () => {
+  const getAllListings = async () => {
     try {
       const { ethereum } = window;
       if (ethereum) {
@@ -117,8 +115,6 @@ const App = () => {
         const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
         console.log("Got here 1")
-
-        createListing()
 
         const allListings = await contract.fetchNumberListings();
 
@@ -131,13 +127,33 @@ const App = () => {
             deadline: JSON.stringify(new Date(l.deadline * 1000)),
             title: l.title,
             description: l.description,
-            targetFundingPrice: parseInt(l.targetFundingPrice._hex)
+            targetFundingPrice: parseInt(l.targetFundingPrice._hex),
+            id: l.itemId
           });
           console.log(JSON.stringify(l.targetFundingPrice._hex))
           console.log("0x0a")
         });
 
         setAllListings(listings);
+
+      } else {
+        console.log("Ethereum object doesn't exist!")
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+
+  const clickCreateListing = async () => {
+    try {
+      const { ethereum } = window;
+      if (ethereum) {
+
+        createListing()
+
+        getAllListings()
+
 
       } else {
         console.log("Ethereum object doesn't exist!")
@@ -158,7 +174,7 @@ const App = () => {
         console.log(currentAccount)
 
         const txOverrides = {
-          value: ethers.utils.parseEther(message),
+          value: ethers.utils.parseEther(state.contribution),
           from: currentAccount
         };
 
@@ -180,17 +196,25 @@ const App = () => {
     }
   }
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log(e.target.contribution);
+    contribute();
+  };
+
+
 
 
   useEffect(() => {
     checkIfWalletIsConnected();
+    getAllListings();
   }, [])
 
   return (
     <div className="mainContainer">
       <div className="dataContainer">
         <div className="header">
-          👋 Hey there! It seems you are the owner of {accountBalance} ETH !
+          👋 Hey there! Welcome to BlockStarter !
         </div>
 
 
@@ -275,6 +299,14 @@ const App = () => {
               <div>Time: {wave.deadline}</div>
               <div>Message: {wave.message}</div>
               <div>Target: {wave.targetFundingPrice}</div>
+              <form className="bio" onSubmit={handleSubmit}>
+                <label>
+                  Contribute to project in ETH :
+            <input id={wave.id} name="contribution" type="text" value={state.contribution} onChange={handleChange}/>
+                </label>
+                <input readOnly hidden name="projectId" type="text" value={wave.id} />
+                <button type="submit">Submit</button>
+              </form>
             </div>)
         })}
 
