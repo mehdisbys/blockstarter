@@ -11,7 +11,7 @@ describe("Marketplace", function () {
     await hardhatToken.createMarketItem("desc", "title", 145);
 
     listings = await hardhatToken.fetchNumberListings()
-    console.log(listings)
+   // console.log(listings)
 
     expect(1).to.equal(listings.length);
     expect("desc").to.equal(listings[0].description)
@@ -35,7 +35,7 @@ describe("Marketplace", function () {
 
     await hardhatToken.contributeToProject(1, txOverrides)
 
-    listings = await hardhatToken.fetchContributors();
+    listings = await hardhatToken.fetchContributorsPerProject(1);
     console.log(listings)
 
     expect(1).to.equal(listings.length);
@@ -45,7 +45,7 @@ describe("Marketplace", function () {
 
   });
 
-  it("Cannot contribute to invalid project", async function () {
+  it("Cannot contribute to invalid project id", async function () {
     const [owner] = await ethers.getSigners();
 
     const Marketplace = await ethers.getContractFactory("Marketplace");
@@ -61,7 +61,7 @@ describe("Marketplace", function () {
     await expect(hardhatToken.contributeToProject(2, txOverrides)).to.be.revertedWith("project id must be valid")
 
     listings = await hardhatToken.fetchContributors();
-    console.log(listings)
+    //console.log(listings)
 
     expect(0).to.equal(listings.length);
   
@@ -83,7 +83,7 @@ describe("Marketplace", function () {
     await expect(hardhatToken.contributeToProject(1, txOverrides)).to.be.revertedWith("contribution to project cannot be higher than targetPrice")
 
     listings = await hardhatToken.fetchContributors();
-    console.log(listings)
+   // console.log(listings)
 
     expect(0).to.equal(listings.length);
   
@@ -109,7 +109,7 @@ describe("Marketplace", function () {
     await expect(hardhatToken.contributeToProject(1, txOverrides)).to.be.revertedWith("Project deadline must be in the future")
 
     listings = await hardhatToken.fetchContributors();
-    console.log(listings)
+   // console.log(listings)
 
     expect(0).to.equal(listings.length);
   
@@ -139,8 +139,8 @@ describe("Marketplace", function () {
 
     const receipt = await hardhatToken.claimBackDonationMissedProjectDeadline(1)
 
-    console.log(receipt)
-    console.log(beforeBalance)
+  //  console.log(receipt)
+  //  console.log(beforeBalance)
     const afterBalance = await ethers.provider.getBalance(owner.address);
 
     const gasUsed = BigInt(receipt.gasLimit) * BigInt(receipt.gasPrice);

@@ -46,6 +46,8 @@ contract Marketplace is ReentrancyGuard {
   
   mapping(uint256 => MarketItem) private idToMarketItem;
   mapping(uint256 => Contributor[]) private idToContributors;
+  mapping(uint256 => Contributor[]) private idToClaimedBack;
+  mapping(address => uint256[]) private contributorToProjects;
 
   MarketItem[] marketItems;
   Contributor[] contributors;
@@ -129,6 +131,7 @@ contract Marketplace is ReentrancyGuard {
     contributors.push(Contributor(itemId, payable(msg.sender), msg.value));
 
     idToContributors[itemId].push(Contributor(itemId, payable(msg.sender), msg.value));
+    contributorToProjects[msg.sender].push(itemId);
 
     emit ContributorDonated(itemId, msg.sender, msg.value);
   }
@@ -137,8 +140,24 @@ contract Marketplace is ReentrancyGuard {
     return contributors;
   }
 
+  function fetchContributorsPerProject(uint itemId) public view returns (Contributor[] memory) {
+    return idToContributors[itemId];
+  }
+
+  function fetchClaimedDonationPerProject(uint itemId) public view returns (Contributor[] memory) {
+    return idToClaimedBack[itemId];
+  }
+
+  function fetchcontributorToProjects(address user) public view returns (uint256[] memory) {
+    return contributorToProjects[user];
+  }
+
+  function fetchProject(uint itemId) public view returns (MarketItem memory) {
+    return idToMarketItem[itemId];
+  }
+
   function claimBackDonationMissedProjectDeadline (uint itemId) public {
-    require(idToMarketItem[itemId].deadline < block.timestamp, "Project deadline has not been reached yet");
+ //  require(idToMarketItem[itemId].deadline < block.timestamp, "Project deadline has not been reached yet");
 
     bool found;
     uint position = 0;
@@ -154,6 +173,7 @@ contract Marketplace is ReentrancyGuard {
 
     Contributor memory userContributor = idToContributors[itemId][position];
     idToContributors[itemId][position].sender.transfer(userContributor.contribution);
+    idToClaimedBack[itemId].push(Contributor(itemId, payable(msg.sender), userContributor.contribution));
   }
 
   fallback () external payable {}
