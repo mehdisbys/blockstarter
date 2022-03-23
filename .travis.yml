@@ -8,4 +8,6 @@ install:
 - npm install
 
 script:
+  - npm install --save-dev eth-gas-reporter
+  - npm install --save-dev @codechecks/client
   - npm test
