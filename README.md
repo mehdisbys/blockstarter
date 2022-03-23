@@ -1,4 +1,4 @@
-# Chainlink Playground
+# Chainlink Playground [![Build Status](https://app.travis-ci.com/mehdisbys/blockstarter.svg?branch=main)](https://app.travis-ci.com/mehdisbys/blockstarter)
 
 This project is right now a space to experiment with Solidity and Chainlink.
 
