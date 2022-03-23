@@ -1,6 +1,11 @@
 language: node_js
 node_js:
   - 17.3
+  
+jobs:
+  include:
+  - node: stable
+    env: NODE_OPTIONS=--openssl-legacy-provider
 
 cache: npm
 
