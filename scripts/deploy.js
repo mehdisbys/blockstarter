@@ -7,6 +7,7 @@ const main = async () => {
   await clContract.deployed();
 
   console.log("CL contract address: ", clContract.address);
+  process.env.CONTRACT_ADDRESS = clContract.address;
 };
 
 const runMain = async () => {

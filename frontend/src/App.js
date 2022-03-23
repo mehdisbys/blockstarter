@@ -1,10 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
-
 import "./App.css";
 import { ethers } from "ethers";
-import abi from "./utils/Marketplace.json";
-const axios = require('axios');
+import abi from 'contract-abi';
 
+console.log(process.env)
 
 const App = () => {
 
@@ -13,7 +12,7 @@ const App = () => {
   const [contributedToListings, setContributedToListings] = useState([]);
   const [contributions, setContributions] = useState([])
 
-  const contractAddress = "0x159a65b859fE2b4d4619B97Aa750a48f4F19e32A";
+  const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
   const contractABI = abi.abi;
 
   const [state, setState] = useState({
@@ -31,9 +30,17 @@ const App = () => {
   }
 
   const handleSubmitContribution = function (index, event) {
-    var contrib = contributions.slice(); // Make a copy of the emails first.
-    contrib[index] = event.target.value; // Update it with the modified email.
-    setContributions(contrib); // Update the state.
+    var contrib = contributions.slice();
+    contrib[index] = event.target.value;
+    setContributions(contrib);
+  }
+
+  function truncateString(str, n) {
+    if (str.length > n) {
+      return "..." + str.substring(str.length - n, str.length);
+    } else {
+      return str;
+    }
   }
 
   const createListing = async () => {
@@ -59,11 +66,9 @@ const App = () => {
     }
   }
 
-
   const checkIfWalletIsConnected = async () => {
     try {
       const { ethereum } = window;
-
       if (!ethereum) {
         console.log("Make sure you have metamask!");
         return;
@@ -98,6 +103,7 @@ const App = () => {
 
       console.log("Connected", accounts[0]);
       setCurrentAccount(accounts[0]);
+
     } catch (error) {
       console.log(error)
     }
@@ -112,11 +118,9 @@ const App = () => {
         const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
         console.log("Got here 1")
+        console.log(contract)
 
         const allListings = await contract.fetchNumberListings();
-        const contrib = await contract.fetchContributorsPerProject(2);
-
-        console.log("contributions");
 
         let listings = [];
         allListings.forEach(async (l) => {
@@ -136,7 +140,7 @@ const App = () => {
           }
 
           listings.push({
-            address: l.seller,
+            address: truncateString(l.seller, 5),
             deadline: JSON.stringify(new Date(l.deadline * 1000)),
             title: l.title,
             description: l.description,
@@ -166,8 +170,6 @@ const App = () => {
         const signer = provider.getSigner();
         const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
-        await checkIfWalletIsConnected();
-
         console.log("Got getAllProjectsContributedTo")
 
         console.log("Current Account " + currentAccount)
@@ -188,9 +190,9 @@ const App = () => {
           let i = 0;
 
           for (i = 0; i < contributorsToProject.length; i++) {
-            if(contributorsToProject[i].sender==="0xdda91E3E4300dE7Ab18Bc47c2a491d8AB451Df5B"){
-            total += parseFloat(ethers.utils.formatEther(contributorsToProject[i].contribution));
-          }
+            if (contributorsToProject[i].sender === "0xdda91E3E4300dE7Ab18Bc47c2a491d8AB451Df5B") {
+              total += parseFloat(ethers.utils.formatEther(contributorsToProject[i].contribution));
+            }
           }
 
           listings.push({
@@ -223,7 +225,6 @@ const App = () => {
         createListing()
 
         getAllListings()
-
 
       } else {
         console.log("Ethereum object doesn't exist!")
@@ -316,17 +317,17 @@ const App = () => {
 
   useEffect(() => {
     checkIfWalletIsConnected();
+
     getAllListings();
     getAllProjectsContributedTo();
   }, [])
 
   return (
-    <div className="mainContainer">
+    <div className="tilesWrap">
       <div className="dataContainer">
         <div className="header">
           👋 Hey there! Welcome to BlockStarter !
         </div>
-
 
         {/*
         * If there is no currentAccount render this button
@@ -346,7 +347,7 @@ const App = () => {
         </div>
         <div id="bio">
 
-          <form id="form">
+          <form id="form" class="form-style-4 tilesWrap">
             <label>
               <div>Title</div>
               <input
@@ -383,69 +384,72 @@ const App = () => {
           <button className="waveButton" onClick={clickCreateListing}>Submit</button>
         </div>
 
-        {listings.map((wave, index) => {
-          return (
-            <div key={index} style={{ backgroundColor: "OldLace", marginTop: "16px", padding: "8px" }}>
-              <div>Id#: {wave.id}</div>
-              <div>Title: {wave.title}</div>
-              <div>Address: {wave.description}</div>
-              <div>Seller: {wave.address}</div>
-              <div>Time: {wave.deadline}</div>
-              <div>Target: {wave.targetFundingPrice}</div>
-              <div>Contributors: {wave.contributors.length}</div>
-              <div>Total Funded: {wave.total}</div>
-              <div>%: {wave.completed}</div>
-              <form className="bio" onSubmit={handleSubmit}>
-                <label>
-                  Contribute to project in ETH :
+        <h3>Projects in need of funding: </h3>
+
+
+        <ul class="tilesWrap">
+          {listings.map((wave, index) => {
+            return (
+              <li key={index}>
+                <h3>Title: {wave.title}</h3>
+                <div>Description: {wave.description}</div>
+                <div>Time: {wave.deadline}</div>
+                <div>Target: {wave.targetFundingPrice}</div>
+                <div>Contributors: {wave.contributors.length}</div>
+                <div>Total Funded: {wave.total}</div>
+                <div>%: {wave.completed}</div>
+                <form className="bio" onSubmit={handleSubmit}>
+                  <label>
+                    Contribute to project in ETH :
             <input key={wave.id} id={wave.id} name="contribution" type="text" value={contributions[index]} onChange={handleSubmitContribution.bind(this, index)} />
-                </label>
-                <input readOnly hidden name="index" type="text" value={index} />
-                <input readOnly hidden name="projectId" type="text" value={wave.id} />
-                <button type="submit">Submit</button>
-              </form>
-              <form onSubmit={handleClaim}>
-                <label>
-                  Claim back donation: {wave.total}</label>
-                <input readOnly hidden name="projectId" type="text" value={wave.id} />
+                  </label>
+                  <input readOnly hidden name="index" type="text" value={index} />
+                  <input readOnly hidden name="projectId" type="text" value={wave.id} />
+                  <button type="submit">Submit</button>
+                </form>
+                <form onSubmit={handleClaim}>
+                  <label>
+                    Claim back donation: {wave.total}</label>
+                  <input readOnly hidden name="projectId" type="text" value={wave.id} />
 
-                <button type="submit">Claim</button>
-              </form>
-            </div>)
-        })}
+                  <button type="submit">Claim</button>
+                </form>
+              </li>)
+          })}
+        </ul>
 
 
-        <h4>Projects contributed to: </h4>
+        <ul class="tilesWrap">
 
-        {contributedToListings.map((wave, index) => {
-          return (
-            <div key={index} style={{ backgroundColor: "OldLace", marginTop: "16px", padding: "8px" }}>
-              <div>Id#: {wave.id}</div>
-              <div>Title: {wave.title}</div>
-              <div>Address: {wave.description}</div>
-              <div>Seller: {wave.address}</div>
-              <div>Time: {wave.deadline}</div>
-              <div>Target: {wave.targetFundingPrice}</div>
-              <div>My Contribution: {wave.contribution}</div>
-              <form className="bio" onSubmit={handleSubmit}>
-                <label>
-                  Contribute to project in ETH :
+          <h3>Projects contributed to: </h3>
+
+          {contributedToListings.map((wave, index) => {
+            return (
+              <li key={index}>
+                <h3>Title: {wave.title}</h3>
+                <div>Address: {wave.description}</div>
+                <div>Time: {wave.deadline}</div>
+                <div>Target: {wave.targetFundingPrice}</div>
+                <div>My Contribution: {wave.contribution}</div>
+                <form className="bio" onSubmit={handleSubmit}>
+                  <label>
+                    Contribute to project in ETH :
             <input key={wave.id} id={wave.id} name="contribution" type="text" value={contributions[index]} onChange={handleSubmitContribution.bind(this, index)} />
-                </label>
-                <input readOnly hidden name="index" type="text" value={index} />
-                <input readOnly hidden name="projectId" type="text" value={wave.id} />
-                <button type="submit">Submit</button>
-              </form>
-              <form onSubmit={handleClaim}>
-                <label>
-                  Claim back donation: {wave.total}</label>
-                <input readOnly hidden name="projectId" type="text" value={wave.id} />
+                  </label>
+                  <input readOnly hidden name="index" type="text" value={index} />
+                  <input readOnly hidden name="projectId" type="text" value={wave.id} />
+                  <button type="submit">Submit</button>
+                </form>
+                <form onSubmit={handleClaim}>
+                  <label>
+                    Claim back donation: {wave.total}</label>
+                  <input readOnly hidden name="projectId" type="text" value={wave.id} />
 
-                <button type="submit">Claim</button>
-              </form>
-            </div>)
-        })}
-
+                  <button type="submit">Claim</button>
+                </form>
+              </li>)
+          })}
+        </ul>
       </div>
     </div>
   );
