@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "cd frontend && npx hardhat test && exit 1"
+    "test": "cd frontend && npx hardhat test && exit 0"
   },
   "keywords": [],
   "author": "",
