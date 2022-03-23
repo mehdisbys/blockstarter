@@ -2,6 +2,12 @@ import React, { useEffect, useState, useRef } from "react";
 import "./App.css";
 import { ethers } from "ethers";
 import abi from 'contract-abi';
+import { Helmet } from "react-helmet";
+import { toSvg } from "jdenticon";
+import parse from "html-react-parser";
+
+
+
 
 console.log(process.env)
 
@@ -323,133 +329,150 @@ const App = () => {
   }, [])
 
   return (
-    <div className="tilesWrap">
-      <div className="dataContainer">
-        <div className="header">
-          👋 Hey there! Welcome to BlockStarter !
-        </div>
+    <div className="application">
+      <Helmet>
+        <meta charSet="utf-8" />
+        <title>Blockstarter | Home</title>
+        <script src="https://cdn.jsdelivr.net/npm/jdenticon@3.1.1/dist/jdenticon.min.js" async
+          integrity="sha384-l0/0sn63N3mskDgRYJZA6Mogihu0VY3CusdLMiwpJ9LFPklOARUcOiWEIGGmFELx" crossorigin="anonymous">
+        </script>
+      </Helmet>
 
-        {/*
+      <div className="tilesWrap">
+        <div className="dataContainer">
+          <h1 className="header">
+            BLOCKSTARTER
+        </h1>
+
+          {/*
         * If there is no currentAccount render this button
         */}
-        {!currentAccount && (
-          <button className="waveButton" onClick={connectWallet}>
-            Connect Wallet
-          </button>
-        )}
+          {!currentAccount && (
+            <button className="waveButton" onClick={connectWallet}>
+              Connect Wallet
+            </button>
+          )}
 
-        <div className="bio">
-          There are currently {listings.length} projects !
+          <div className="bio">
+            There are currently {listings.length} projects !
         </div>
 
-        <div className="App">
-          <h3>Create New Listing</h3>
-        </div>
-        <div id="bio">
+          <div className="App">
+            <h3>Create New Listing</h3>
+          </div>
+          <div id="bio">
 
-          <form id="form" class="form-style-4 tilesWrap">
-            <label>
-              <div>Title</div>
-              <input
-                type="text"
-                name="title"
-                value={state.title}
-                onChange={handleChange}
-              />
-            </label>
-            <p></p>
-            <label>
-              <div>Description</div>
-              <textarea
-                type="text"
-                name="description"
-                value={state.description}
-                onChange={handleChange}
-              />
-            </label>
-            <p></p>
-            <label>
-              <div>Target Funding</div>
-              <input
-                type="text"
-                name="targetFundingPrice"
-                value={state.targetFundingPrice}
-                onChange={handleChange}
-              />
-            </label>
-            <p></p>
-          </form>
-        </div>
-        <div>
-          <button className="waveButton" onClick={clickCreateListing}>Submit</button>
-        </div>
+            <form id="form" class="form-style-4 tilesWrap">
+              <label>
+                <div>Title</div>
+                <input
+                  type="text"
+                  name="title"
+                  value={state.title}
+                  onChange={handleChange}
+                />
+              </label>
+              <p></p>
+              <label>
+                <div>Description</div>
+                <textarea
+                  type="text"
+                  name="description"
+                  value={state.description}
+                  onChange={handleChange}
+                />
+              </label>
+              <p></p>
+              <label>
+                <div>Target Funding</div>
+                <input
+                  type="text"
+                  name="targetFundingPrice"
+                  value={state.targetFundingPrice}
+                  onChange={handleChange}
+                />
+              </label>
+              <p></p>
+            </form>
+          </div>
+          <div>
+            <button className="waveButton" onClick={clickCreateListing}>Submit</button>
+          </div>
 
-        <h3>Projects in need of funding: </h3>
+          <h3>Projects in need of funding: </h3>
 
 
-        <ul class="tilesWrap">
-          {listings.map((wave, index) => {
-            return (
-              <li key={index}>
-                <h3>Title: {wave.title}</h3>
-                <div>Description: {wave.description}</div>
-                <div>Time: {wave.deadline}</div>
-                <div>Target: {wave.targetFundingPrice}</div>
-                <div>Contributors: {wave.contributors.length}</div>
-                <div>Total Funded: {wave.total}</div>
-                <div>%: {wave.completed}</div>
-                <form className="bio" onSubmit={handleSubmit}>
-                  <label>
-                    Contribute to project in ETH :
+          <div class="tilesWrap">
+            {listings.map((wave, index) => {
+              return (
+
+                <li key={index}>
+                  {parse(toSvg(wave.title + wave.description, 199))}
+
+                  <h3>Title: {wave.title}</h3>
+
+                  <div>Description: {wave.description}</div>
+                  <div>Time: {wave.deadline}</div>
+                  <div>Target: {wave.targetFundingPrice}</div>
+                  <div>Contributors: {wave.contributors.length}</div>
+                  <div>Total Funded: {wave.total}</div>
+                  <div>%: {wave.completed}</div>
+                  <form className="bio" onSubmit={handleSubmit}>
+
+                    <label>
+                      Contribute to project in ETH :
             <input key={wave.id} id={wave.id} name="contribution" type="text" value={contributions[index]} onChange={handleSubmitContribution.bind(this, index)} />
-                  </label>
-                  <input readOnly hidden name="index" type="text" value={index} />
-                  <input readOnly hidden name="projectId" type="text" value={wave.id} />
-                  <button type="submit">Submit</button>
-                </form>
-                <form onSubmit={handleClaim}>
-                  <label>
-                    Claim back donation: {wave.total}</label>
-                  <input readOnly hidden name="projectId" type="text" value={wave.id} />
+                    </label>
+                    <input readOnly hidden name="index" type="text" value={index} />
+                    <input readOnly hidden name="projectId" type="text" value={wave.id} />
+                    <button type="submit">Submit</button>
+                  </form>
+                  <form onSubmit={handleClaim}>
+                    <label>
+                      Claim back donation: {wave.total}</label>
+                    <input readOnly hidden name="projectId" type="text" value={wave.id} />
 
-                  <button type="submit">Claim</button>
-                </form>
-              </li>)
-          })}
-        </ul>
+                    <button type="submit">Claim</button>
+                  </form>
+                </li>)
+            })}
+          </div>
 
 
-        <ul class="tilesWrap">
+          <ul class="tilesWrap">
 
-          <h3>Projects contributed to: </h3>
+            <h3>Projects contributed to: </h3>
 
-          {contributedToListings.map((wave, index) => {
-            return (
-              <li key={index}>
-                <h3>Title: {wave.title}</h3>
-                <div>Address: {wave.description}</div>
-                <div>Time: {wave.deadline}</div>
-                <div>Target: {wave.targetFundingPrice}</div>
-                <div>My Contribution: {wave.contribution}</div>
-                <form className="bio" onSubmit={handleSubmit}>
-                  <label>
-                    Contribute to project in ETH :
+            {contributedToListings.map((wave, index) => {
+              return (
+                <li key={index}>
+                  {parse(toSvg(wave.title + wave.description, 199))}
+
+                  <h3>Title: {wave.title}</h3>
+                  <div>Address: {wave.description}</div>
+                  <div>Time: {wave.deadline}</div>
+                  <div>Target: {wave.targetFundingPrice}</div>
+                  <div>My Contribution: {wave.contribution}</div>
+                  <form className="bio" onSubmit={handleSubmit}>
+                    <label>
+                      Contribute to project in ETH :
             <input key={wave.id} id={wave.id} name="contribution" type="text" value={contributions[index]} onChange={handleSubmitContribution.bind(this, index)} />
-                  </label>
-                  <input readOnly hidden name="index" type="text" value={index} />
-                  <input readOnly hidden name="projectId" type="text" value={wave.id} />
-                  <button type="submit">Submit</button>
-                </form>
-                <form onSubmit={handleClaim}>
-                  <label>
-                    Claim back donation: {wave.total}</label>
-                  <input readOnly hidden name="projectId" type="text" value={wave.id} />
+                    </label>
+                    <input readOnly hidden name="index" type="text" value={index} />
+                    <input readOnly hidden name="projectId" type="text" value={wave.id} />
+                    <button type="submit">Submit</button>
+                  </form>
+                  <form onSubmit={handleClaim}>
+                    <label>
+                      Claim back donation: {wave.total}</label>
+                    <input readOnly hidden name="projectId" type="text" value={wave.id} />
 
-                  <button type="submit">Claim</button>
-                </form>
-              </li>)
-          })}
-        </ul>
+                    <button type="submit">Claim</button>
+                  </form>
+                </li>)
+            })}
+          </ul>
+        </div>
       </div>
     </div>
   );
