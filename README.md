@@ -6,7 +6,21 @@
 
 This project implements a Kickstarter-like application where people can list projects or causes that need funding and anyone can participate in their funding.
 
-Contributors to a project will be refunded if the deadline is missed anf the target funding is not achieved.
+Requirements: 
+
+- [x] Ability to list a project with a description + deadline + funding desired
+    
+- [x] Ability to send funds to a project :
+    
+- [x] it cannot be zero
+    
+- [x] it cannot exceed the funding amount
+    
+- [x] the project's deadline must be in the future
+
+- [x] User can claim back donation if project fails to collect all funds needed
+    
+- [x] User can directly see which projects they contributed to
 
 This project runs on the ethereum blockchain and uses: 
 
